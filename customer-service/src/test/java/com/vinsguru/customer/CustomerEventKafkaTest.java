@@ -1,6 +1,8 @@
 package com.vinsguru.customer;
 
+import com.vinsguru.customer.dto.GenreUpdateRequest;
 import com.vinsguru.netflux.events.CustomerGenreUpdatedEvent;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
@@ -8,11 +10,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @AutoConfigureRestTestClient
@@ -37,7 +41,20 @@ public class CustomerEventKafkaTest {
     private BlockingQueue<Message<CustomerGenreUpdatedEvent>> queue;
 
     @Test
-    public void genreUpdatedEvent() {
+    public void genreUpdatedEvent() throws InterruptedException {
+        var request = new GenreUpdateRequest("Thriller");
+        this.testClient.patch()
+                .uri("/api/customers/2/genre")
+                .body(request)
+                .exchange()
+                .expectStatus().isNoContent(); // 204
+
+        var message = this.queue.poll(5, TimeUnit.SECONDS);
+        Assertions.assertNotNull(message);
+        var event = message.getPayload();
+        Assertions.assertEquals(2, message.getHeaders().get(KafkaHeaders.RECEIVED_KEY, Integer.class));
+        Assertions.assertEquals(2, event.customerId());
+        Assertions.assertEquals("Thriller", event.favoriteGenre());
     }
 
     @TestConfiguration

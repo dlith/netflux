@@ -2,7 +2,6 @@ package com.vinsguru.customer;
 
 import com.vinsguru.customer.dto.GenreUpdateRequest;
 import com.vinsguru.netflux.events.CustomerGenreUpdatedEvent;
-import kafka.Kafka;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
