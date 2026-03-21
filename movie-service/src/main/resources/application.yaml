@@ -1,0 +1,20 @@
+app:
+  import-movies: true
+---
+server:
+  port: 7070
+---
+spring:
+  jpa:
+    defer-datasource-initialization: true
+  cloud:
+    stream:
+      bindings:
+        movie-events-out:
+          destination: movie-events
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+          producer-properties:
+            key.serializer: org.apache.kafka.common.serialization.IntegerSerializer

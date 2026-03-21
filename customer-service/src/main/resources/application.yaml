@@ -1,0 +1,19 @@
+spring:
+  jpa:
+    defer-datasource-initialization: true
+---
+server:
+  port: 6060
+---
+spring:
+  cloud:
+    stream:
+      bindings:
+        customer-events-out:
+          destination: customer-events
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+          producer-properties:
+            key.serializer: org.apache.kafka.common.serialization.IntegerSerializer

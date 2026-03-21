@@ -1,0 +1,16 @@
+server:
+  port: 8080
+---
+spring:
+  jpa:
+    defer-datasource-initialization: true
+  cloud:
+    function:
+      definition: ??
+    stream:
+      bindings:
+        ??
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
