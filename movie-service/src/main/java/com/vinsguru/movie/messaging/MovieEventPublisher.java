@@ -23,8 +23,8 @@ public class MovieEventPublisher {
 
     @EventListener
     public void onMovieAdded(MovieAddedEvent movieAddedEvent) {
-        var message= MessageBuilder.withPayload(movieAddedEvent)
-                .setHeader(KafkaHeaders.KEY, movieAddedEvent.movieId().toString())
+        var message = MessageBuilder.withPayload(movieAddedEvent)
+                .setHeader(KafkaHeaders.KEY, movieAddedEvent.movieId())
                 .build();
         this.streamBridge.send(MOVIE_EVENTS_OUT, message);
         logger.info("Publishing MovieAddedEvent for movieId: {}", movieAddedEvent.movieId());
