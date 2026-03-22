@@ -14,6 +14,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -44,8 +45,29 @@ public class MovieEventKafkaTest {
     private BlockingQueue<Message<MovieAddedEvent>> queue;
 
     @Test
-    public void movieAddedEvent() {
+    public void movieAddedEvent() throws InterruptedException {
+        var json = """
+                    {"title":"8 Mile","voteAverage":7.124,"voteCount":6692,"releaseDate":"2002-11-08","revenue":242875078,"runtime":111,"backdropPath":"/bfccQmQWNFQYRv4PHgCnjDu7PXn.jpg","budget":41000000,"homepage":"https://www.uphe.com/movies/8-mile","overview":"For Jimmy Smith, Jr., life is a daily fight just to keep hope alive. Feeding his dreams in Detroit's vibrant music scene, Jimmy wages an extraordinary personal struggle to find his own voice - and earn a place in a world where rhymes rule, legends are born and every moment… is another chance.","popularity":36.179,"posterPath":"/7BmQj8qE1FLuLTf7Xjf9sdIHzoa.jpg","genres":["Drama","Music"]}
+                """;
+        var request = JsonMapper.shared().readValue(json, MovieDetails.class);
+        var response = this.testClient.post()
+                .uri("/api/movies")
+                .body(request)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .returnResult(MovieDetails.class)
+                .getResponseBody();
 
+        Assertions.assertNotNull(response);
+        Assertions.assertNotNull(response.id());
+        Assertions.assertEquals("8 Mile", response.title());
+
+        var message = this.queue.poll(5, TimeUnit.SECONDS);
+        Assertions.assertNotNull(message);
+        var event = message.getPayload();
+        Assertions.assertEquals(response.id(), message.getHeaders().get(KafkaHeaders.RECEIVED_KEY, Integer.class));
+        Assertions.assertEquals(response.id(), event.movieId());
+        Assertions.assertEquals("8 Mile", event.title());
     }
 
     @TestConfiguration
